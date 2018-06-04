@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+	<meta charset="UTF-8">
+	<meta name="Author" content="gjs">
+	<meta name="Description" content="gjs">
+	<meta name="Keyword" content="gjs">
+	<meta name="viewport" content="width=device-width,inital-scale=1,maxmum-scale=1,minmum-scale=1,user-scalable=no">
+	<title>jQuery版无缝轮播</title>
+	<style>
+		*{
+			margin:0;
+			padding:0;
+		}
+		li{
+			list-style:none;
+		}
+		img{
+			vertical-align: top;
+		}
+		#wrap{
+			position: relative;
+			width: 640px;
+			height: 360px;
+			margin:50px auto;
+			overflow: hidden;
+		}
+		#wrap .pic{
+			position: absolute;
+			top: 0;
+			left: 0;
+			height: 100%;
+			width: 1000%;
+		}
+		.pic li{
+			float: left;
+			width: 640px;
+			height: 360px;
+			background-position: 0 0;
+			background-repeat: no-repeat;
+			background-size: cover;
+		}
+		.tab{
+			position: absolute;
+			bottom: 20px;
+			left: 50%;
+			margin-left: -120px;
+			width: 240px;
+			height: 30px;
+			padding-left:10px;
+			background: rgba(0,0,0,.2);
+			border-radius: 15px;
+			transition: .5s;
+			transform: scale(.8);
+		}
+		.tab:hover{
+			background: rgba(0,0,0,.5);
+			transform: scale(1.2);
+		}
+		.tab li{
+			width: 20px;
+			height: 20px;
+			float: left;
+			background: #fff;
+			border-radius: 50%;
+			margin: 5px 10px 0 0;
+			opacity: .35;
+			cursor: pointer;
+		}
+		.tab li.on{
+			position: absolute;
+			top: 0px;
+			background: #f60;
+			opacity: 1;
+			z-index: 99;
+		}
+		#wrap>div{
+			display: none;
+			position: absolute;
+			top: 50%;
+			margin-top: -30px;
+			width: 30px;
+			height: 60px;
+			background: rgba(0,0,0,.2);
+			text-align: center;
+			font-size: 18px;
+			line-height: 60px;
+			color: #fff;
+			cursor: pointer;
+		}
+		#wrap>div:hover{
+			background: rgba(0,0,0,.5);
+		}
+		.next{
+			right: 0;
+		}
+	</style>
+	<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+</head>
+<body>
+	<div id="wrap">
+    	<ul class="pic">
+    		<li style="background-image: url('images/1.jpg')"></li>
+    		<li style="background-image: url('images/2.jpg')"></li>
+    		<li style="background-image: url('images/3.jpg')"></li>
+    		<li style="background-image: url('images/4.jpg')"></li>
+    		<li style="background-image: url('images/5.jpg')"></li>
+    		<li style="background-image: url('images/6.jpg')"></li>
+    		<li style="background-image: url('images/7.jpg')"></li>
+    		<li style="background-image: url('images/8.jpg')"></li>
+    		<li style="background-image: url('images/1.jpg')"></li>
+    	</ul>
+		<ul class="tab">
+			<li class="on"></li>
+			<li></li>
+			<li></li>
+			<li></li>
+			<li></li>
+			<li></li>
+			<li></li>
+			<li></li>
+			<li></li>
+		</ul>
+		<div class="prev"><</div>
+		<div class="next">></div>
+    </div>
+	<script type="text/javascript">
+		$(function(){
+			var $tabLi = $(".tab>li").slice(1),
+				$picLi = $(".pic>li"),
+				$pic = $(".pic"),
+				$tabOn = $(".tab>.on"),
+				imgWidth = $(".pic>li").width(),
+				index = 0,
+				date = new Date,
+				timer = null;
+
+			//自动播放
+			timer = setInterval(loop,3000);
+
+			function loop(){
+				index++;
+				if (index !== $picLi.length - 1) { 
+						$tabOn.animate({
+							left: 30 * index + 10 + "px"
+						},250)
+					}else{
+						$tabOn.animate({
+							opacity: 0
+						},250,function(){
+							$tabOn.css("left","10px");
+							$tabOn.animate({
+								opacity: 1
+							},250)
+						})
+					}
+
+					$pic.animate({
+						left: -imgWidth * index
+					},500,function(){
+						if (index === $picLi.length - 1) {
+							$pic.css("left","0")
+							index = 0	
+						}
+					})	
+			}
+	
+			//鼠标划入显示左右按钮
+			$("#wrap").on("mouseenter",function(e){
+				e.stopPropagation();
+				e.preventDefault();
+				$("#wrap>div").css("display","block")
+				clearInterval(timer)
+			})
+			$("#wrap").on("mouseleave",function(e){
+				e.stopPropagation();
+				e.preventDefault();
+				$("#wrap>div").css("display","none")
+				timer = setInterval(loop,3000);
+			})
+
+			//点击tab
+			$tabLi.click(function(){
+				index = $(this).index()-1;
+				$pic.animate({
+					left: -index*imgWidth+"px"
+
+				},500)
+				$tabOn.animate({
+					opacity: 0
+				},250,function(){
+					$(this).css("left",index * 30 + 10 + "px")
+					$(this).animate({
+						opacity: 1
+					},250)
+				})		
+			})
+
+			//点击next按钮
+			$(".next").click(function(){
+				if (new Date() - date > 500) {
+					loop();
+					date = new Date();
+				}
+			})
+
+			//点击prev按钮
+			$(".prev").click(function(){
+				if (new Date() - date > 500) {
+					if (index === 0) {
+  						$pic.css("left",-($picLi.length-1)*imgWidth+"px") 
+  						index = $picLi.length - 1;
+  						$tabOn.animate({
+  							opacity:0
+  						},250,function(){
+  							$(this).css("left",($tabLi.length - 1)*30+10+"px")
+  							$(this).animate({
+  								opacity:1
+  							},250) 
+  						})
+  					}
+  					index--;
+  					if (index !== $picLi.length - 2) {
+  						$tabOn.animate({
+  							left:30*index + 10
+  						},500)
+  					}
+  					$pic.animate({
+  						left: -imgWidth * index
+  					},500)
+					date = new Date();
+				}
+			})
+		})
+	</script>
+</body>
+</html>
